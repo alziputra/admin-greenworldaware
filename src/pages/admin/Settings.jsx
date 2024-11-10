@@ -2,12 +2,12 @@ import { useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 
 const Settings = () => {
-  const { userData } = useContext(AuthContext);
+  const { userData, token } = useContext(AuthContext);
   const [firstName, setFirstName] = useState(userData?.firstName || "");
   const [lastName, setLastName] = useState(userData?.lastName || "");
   const [email, setEmail] = useState(userData?.email || "");
   const [gender, setGender] = useState(userData?.gender || "");
-  const [currentPassword, setCurrentPassword] = useState(""); // Field for current password
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [profileImage, setProfileImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(userData?.image || "");
@@ -31,18 +31,19 @@ const Settings = () => {
     formData.append("lastName", lastName);
     formData.append("email", email);
     formData.append("gender", gender);
-    formData.append("currentPassword", currentPassword); // Append current password
-    if (newPassword) formData.append("password", newPassword);
-    if (profileImage) formData.append("image", profileImage);
+    formData.append("currentPassword", currentPassword); // Verifikasi password lama
+    if (newPassword) formData.append("password", newPassword); // Password baru, jika ada
+    if (profileImage) formData.append("image", profileImage); // Gambar profil baru, jika ada
 
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/${userData.id}`, {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${userData.token}`,
+          Authorization: `Bearer ${token}`, // Header otentikasi dengan token
         },
         body: formData,
       });
+
       const result = await response.json();
       if (response.ok) {
         setStatusMessage("Profile updated successfully");

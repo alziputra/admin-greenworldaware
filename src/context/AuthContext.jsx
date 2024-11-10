@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import jwtDecode from "jwt-decode"; // Pastikan jwtDecode diimpor dengan benar
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext({
@@ -13,23 +13,25 @@ export const AuthContext = createContext({
 
 export const AuthContextProvider = ({ children }) => {
   const [token, setToken] = useState(undefined);
-  const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState(undefined);
+  const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true); // Loading state for auth initialization
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Ambil token dari localStorage saat komponen dimuat
-    const storedToken = localStorage.getItem("ACCOUNT_TOKEN");
-    if (storedToken) {
+    // Ambil token dari localStorage saat komponen pertama kali dimuat
+    const tokenData = localStorage.getItem("ACCOUNT_TOKEN");
+    if (tokenData) {
       try {
-        const decodedUser = jwtDecode(storedToken);
-        setToken(storedToken);
-        setUserData(decodedUser);
+        const decodedUserData = jwtDecode(tokenData);
+        setToken(tokenData);
+        setUserData(decodedUserData);
       } catch (error) {
         console.error("Failed to decode token:", error);
         handleLogout();
       }
     }
+    setAuthLoading(false); // Set authLoading to false after attempting to load user data
   }, []);
 
   const handleLogin = async (email, password) => {
@@ -47,16 +49,15 @@ export const AuthContextProvider = ({ children }) => {
       if (response.ok) {
         const token = responseJson.token;
         localStorage.setItem("ACCOUNT_TOKEN", token);
-
-        const decodedUser = jwtDecode(token);
-        localStorage.setItem("ACCOUNT_DATA", JSON.stringify(decodedUser));
+        const decodedUserData = jwtDecode(token);
+        localStorage.setItem("ACCOUNT_DATA", JSON.stringify(decodedUserData));
         setToken(token);
-        setUserData(decodedUser);
+        setUserData(decodedUserData);
 
         // Redirect based on role
-        if (decodedUser.role === "admin" || decodedUser.role === "super admin") {
+        if (decodedUserData.role === "admin" || decodedUserData.role === "super admin") {
           navigate("/");
-        } else if (decodedUser.role === "user") {
+        } else if (decodedUserData.role === "user") {
           navigate("/forbidden");
         }
       } else {
@@ -77,7 +78,7 @@ export const AuthContextProvider = ({ children }) => {
     navigate("/login");
   };
 
-  return <AuthContext.Provider value={{ token, handleLogin, userData, handleLogout, loading }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ token, handleLogin, userData, handleLogout, loading, authLoading }}>{children}</AuthContext.Provider>;
 };
 
 AuthContextProvider.propTypes = {

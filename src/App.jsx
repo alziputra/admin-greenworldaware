@@ -19,7 +19,11 @@ import { Toaster } from "react-hot-toast";
 import EditPetition from "./pages/Petitions/EditPetition";
 
 function App() {
-  const { userData } = useContext(AuthContext);
+  const { userData, authLoading } = useContext(AuthContext);
+
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
 
   const isAdminOrSuperAdmin = userData?.role === "admin" || userData?.role === "super admin";
 
