@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import {jwtDecode} from "jwt-decode";
+import jwtDecode from "jwt-decode"; // Pastikan jwtDecode diimpor dengan benar
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext({
@@ -18,11 +18,17 @@ export const AuthContextProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const tokenData = localStorage.getItem("ACCOUNT_TOKEN");
-    const userHasLoggedIn = JSON.parse(localStorage.getItem("ACCOUNT_DATA"));
-    if (tokenData && userHasLoggedIn) {
-      setToken(tokenData);
-      setUserData(userHasLoggedIn);
+    // Ambil token dari localStorage saat komponen dimuat
+    const storedToken = localStorage.getItem("ACCOUNT_TOKEN");
+    if (storedToken) {
+      try {
+        const decodedUser = jwtDecode(storedToken);
+        setToken(storedToken);
+        setUserData(decodedUser);
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+        handleLogout();
+      }
     }
   }, []);
 
@@ -41,15 +47,16 @@ export const AuthContextProvider = ({ children }) => {
       if (response.ok) {
         const token = responseJson.token;
         localStorage.setItem("ACCOUNT_TOKEN", token);
-        const decoded = jwtDecode(token);
-        localStorage.setItem("ACCOUNT_DATA", JSON.stringify(decoded));
+
+        const decodedUser = jwtDecode(token);
+        localStorage.setItem("ACCOUNT_DATA", JSON.stringify(decodedUser));
         setToken(token);
-        setUserData(decoded);
+        setUserData(decodedUser);
 
         // Redirect based on role
-        if (decoded.role === "admin") {
+        if (decodedUser.role === "admin" || decodedUser.role === "super admin") {
           navigate("/");
-        } else if (decoded.role === "user") {
+        } else if (decodedUser.role === "user") {
           navigate("/forbidden");
         }
       } else {

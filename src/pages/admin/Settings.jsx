@@ -7,17 +7,18 @@ const Settings = () => {
   const [lastName, setLastName] = useState(userData?.lastName || "");
   const [email, setEmail] = useState(userData?.email || "");
   const [gender, setGender] = useState(userData?.gender || "");
+  const [currentPassword, setCurrentPassword] = useState(""); // Field for current password
   const [newPassword, setNewPassword] = useState("");
-  const [profileImage, setProfileImage] = useState(null); // File selected from the computer
-  const [previewImage, setPreviewImage] = useState(userData?.image || ""); // URL for preview
+  const [profileImage, setProfileImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(userData?.image || "");
   const [statusMessage, setStatusMessage] = useState("");
 
   const handleCancel = () => {
-    // Reset form fields to initial user data
     setFirstName(userData?.firstName || "");
     setLastName(userData?.lastName || "");
     setEmail(userData?.email || "");
     setGender(userData?.gender || "");
+    setCurrentPassword("");
     setNewPassword("");
     setProfileImage(null);
     setPreviewImage(userData?.image || "");
@@ -30,6 +31,7 @@ const Settings = () => {
     formData.append("lastName", lastName);
     formData.append("email", email);
     formData.append("gender", gender);
+    formData.append("currentPassword", currentPassword); // Append current password
     if (newPassword) formData.append("password", newPassword);
     if (profileImage) formData.append("image", profileImage);
 
@@ -61,7 +63,7 @@ const Settings = () => {
     const file = e.target.files[0];
     if (file) {
       setProfileImage(file);
-      setPreviewImage(URL.createObjectURL(file)); // Set temporary URL for preview
+      setPreviewImage(URL.createObjectURL(file));
     }
   };
 
@@ -93,9 +95,14 @@ const Settings = () => {
                 <label className="block mb-2 font-semibold">Gender</label>
                 <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full p-2 border rounded">
                   <option value="">Select</option>
-                  <option value="male">laki-laki</option>
-                  <option value="female">perempuan</option>
+                  <option value="male">Laki-laki</option>
+                  <option value="female">Perempuan</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block mb-2 font-semibold">Current Password</label>
+                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full p-2 border rounded" placeholder="Enter current password" />
               </div>
 
               <div>
@@ -105,7 +112,6 @@ const Settings = () => {
 
               <div>
                 <label className="block mb-2 font-semibold">Profile Image</label>
-                {/* Display current or selected profile image */}
                 {previewImage && (
                   <div className="mb-4">
                     <img src={previewImage} alt="Profile Preview" className="w-20 h-20 rounded-full mx-auto" />
