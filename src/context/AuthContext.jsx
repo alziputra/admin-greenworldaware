@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 export const AuthContext = createContext({
   handleLogin: async () => {},
   handleLogout: async () => {},
+  updateUserData: () => {},
   token: undefined,
   userData: undefined,
   loading: false,
@@ -15,23 +16,24 @@ export const AuthContextProvider = ({ children }) => {
   const [token, setToken] = useState(undefined);
   const [userData, setUserData] = useState(undefined);
   const [loading, setLoading] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true); // Loading state for auth initialization
+  const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Ambil token dari localStorage saat komponen pertama kali dimuat
     const tokenData = localStorage.getItem("ACCOUNT_TOKEN");
-    if (tokenData) {
+    const storedUserData = JSON.parse(localStorage.getItem("ACCOUNT_DATA"));
+
+    if (tokenData && storedUserData) {
       try {
-        const decodedUserData = jwtDecode(tokenData);
         setToken(tokenData);
-        setUserData(decodedUserData);
+        // Gunakan userData dari localStorage
+        setUserData(storedUserData);
       } catch (error) {
         console.error("Failed to decode token:", error);
         handleLogout();
       }
     }
-    setAuthLoading(false); // Set authLoading to false after attempting to load user data
+    setAuthLoading(false);
   }, []);
 
   const handleLogin = async (email, password) => {
@@ -54,7 +56,6 @@ export const AuthContextProvider = ({ children }) => {
         setToken(token);
         setUserData(decodedUserData);
 
-        // Redirect based on role
         if (decodedUserData.role === "admin" || decodedUserData.role === "super admin") {
           navigate("/");
         } else if (decodedUserData.role === "user") {
@@ -78,7 +79,28 @@ export const AuthContextProvider = ({ children }) => {
     navigate("/login");
   };
 
-  return <AuthContext.Provider value={{ token, handleLogin, userData, handleLogout, loading, authLoading }}>{children}</AuthContext.Provider>;
+  const updateUserData = (newData) => {
+    const updatedUserData = { ...userData, ...newData };
+    setUserData(updatedUserData);
+    // Perbarui data di localStorage
+    localStorage.setItem("ACCOUNT_DATA", JSON.stringify(updatedUserData));
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        token,
+        handleLogin,
+        handleLogout,
+        updateUserData,
+        userData,
+        loading,
+        authLoading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 AuthContextProvider.propTypes = {

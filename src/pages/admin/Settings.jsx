@@ -2,7 +2,7 @@ import { useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 
 const Settings = () => {
-  const { userData, token } = useContext(AuthContext);
+  const { userData, token, updateUserData } = useContext(AuthContext);
   const [firstName, setFirstName] = useState(userData?.firstName || "");
   const [lastName, setLastName] = useState(userData?.lastName || "");
   const [email, setEmail] = useState(userData?.email || "");
@@ -31,15 +31,15 @@ const Settings = () => {
     formData.append("lastName", lastName);
     formData.append("email", email);
     formData.append("gender", gender);
-    formData.append("currentPassword", currentPassword); // Verifikasi password lama
-    if (newPassword) formData.append("password", newPassword); // Password baru, jika ada
-    if (profileImage) formData.append("image", profileImage); // Gambar profil baru, jika ada
+    formData.append("currentPassword", currentPassword);
+    if (newPassword) formData.append("password", newPassword);
+    if (profileImage) formData.append("image", profileImage);
 
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}/users/${userData.id}`, {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${token}`, // Header otentikasi dengan token
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -47,6 +47,10 @@ const Settings = () => {
       const result = await response.json();
       if (response.ok) {
         setStatusMessage("Profile updated successfully");
+        // Perbarui data pengguna di AuthContext, sehingga data di navbar juga terupdate
+        updateUserData({ image: result.data.image, firstName: result.data.firstName, lastName: result.data.lastName });
+        // Perbarui gambar lama dengan gambar baru
+        setPreviewImage(result.data.image); 
       } else {
         setStatusMessage(result.message || "Failed to update profile");
       }
@@ -125,7 +129,7 @@ const Settings = () => {
                 <button type="button" onClick={handleCancel} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                   Cancel
                 </button>
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                   Save Changes
                 </button>
               </div>
