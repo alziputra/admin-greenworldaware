@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext({
@@ -15,18 +15,14 @@ export const AuthContextProvider = ({ children }) => {
   const [token, setToken] = useState(undefined);
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState(undefined);
-
   const navigate = useNavigate();
 
   useEffect(() => {
     const tokenData = localStorage.getItem("ACCOUNT_TOKEN");
     const userHasLoggedIn = JSON.parse(localStorage.getItem("ACCOUNT_DATA"));
-    if (tokenData) {
+    if (tokenData && userHasLoggedIn) {
       setToken(tokenData);
       setUserData(userHasLoggedIn);
-    } else {
-      setToken(undefined);
-      setUserData(undefined);
     }
   }, []);
 
@@ -43,9 +39,8 @@ export const AuthContextProvider = ({ children }) => {
       const responseJson = await response.json();
 
       if (response.ok) {
-        const token = responseJson.token; // Ensure the token is retrieved correctly
+        const token = responseJson.token;
         localStorage.setItem("ACCOUNT_TOKEN", token);
-
         const decoded = jwtDecode(token);
         localStorage.setItem("ACCOUNT_DATA", JSON.stringify(decoded));
         setToken(token);

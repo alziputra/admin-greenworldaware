@@ -1,4 +1,3 @@
-// App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import SideBar from "./components/SideBar";
 import AuthLogin from "./pages/auth/AuthLogin";
@@ -11,7 +10,7 @@ import { useContext } from "react";
 import NotAdmin from "./pages/NotAdmin";
 import NotFound from "./pages/NotFound";
 import Add from "./pages/News/Add";
-import Settings from "./pages/admin/Settings"; // Updated path for Settings
+import Settings from "./pages/admin/Settings";
 import { NewsContextProvider } from "./context/NewsContext";
 import Petitions from "./pages/Petitions/Petitions";
 import AddPetition from "./pages/Petitions/AddPetition";
@@ -22,21 +21,24 @@ import EditPetition from "./pages/Petitions/EditPetition";
 function App() {
   const { userData } = useContext(AuthContext);
 
+  const isAdminOrSuperAdmin = userData?.role === "admin" || userData?.role === "super admin";
+
   return (
     <Routes>
       <Route
         path="/"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <>
               <SideBar />
               <Dashboard />
             </>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
+
       {/* Settings route for authenticated users */}
       <Route
         path="/setting"
@@ -44,111 +46,116 @@ function App() {
           userData ? (
             <>
               <SideBar />
-              <Settings /> {/* Updated path for Settings */}
+              <Settings />
             </>
           ) : (
-            <Navigate to="/login" replace={true} />
+            <Navigate to="/login" replace />
           )
         }
       />
+
       <Route
         path="/user"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <>
               <SideBar />
               <User />
             </>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
+
       {/* Petitions routes */}
       <Route
         path="/petitions"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <PetitionContextProvider>
               <SideBar />
               <Petitions />
               <Toaster />
             </PetitionContextProvider>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
       <Route
         path="/petitions/add-petition"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <>
               <SideBar />
               <AddPetition />
             </>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
       <Route
         path="/petitions/edit-petition/:id"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <PetitionContextProvider>
               <SideBar />
               <EditPetition />
             </PetitionContextProvider>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
+
       {/* News routes */}
       <Route
         path="/news"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <NewsContextProvider>
               <SideBar />
               <News />
               <Toaster />
             </NewsContextProvider>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
       <Route
         path="/news/edit/:id"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <NewsContextProvider>
               <SideBar />
               <Edit />
             </NewsContextProvider>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
       <Route
         path="/news/add-news"
         element={
-          userData?.role === "admin" ? (
+          isAdminOrSuperAdmin ? (
             <>
               <SideBar />
               <Add />
             </>
           ) : (
-            <Navigate to="/forbidden" replace={true} />
+            <Navigate to="/forbidden" replace />
           )
         }
       />
+
+      {/* Additional routes */}
       <Route path="*" element={<NotFound />} />
-      <Route path="/login" element={!userData ? <AuthLogin /> : <Navigate to="/" replace={true} />} />
-      <Route path="/forbidden" element={userData?.role === "user" ? <NotAdmin /> : <Navigate to="/login" replace={true} />} />
+      <Route path="/login" element={!userData ? <AuthLogin /> : <Navigate to="/" replace />} />
+      <Route path="/forbidden" element={userData ? <NotAdmin /> : <Navigate to="/login" replace />} />
     </Routes>
   );
 }
